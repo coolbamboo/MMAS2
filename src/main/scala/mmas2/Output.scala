@@ -1,0 +1,51 @@
+package MMAS
+
+import mmas2.{Record, T_Ant}
+
+import scala.collection.mutable.ArrayBuffer
+
+/**
+ * Created by root on 2016/3/7.
+ * results:
+  * stagenum
+  * iter_num
+  * ant_num
+  * is_par
+  * par_num
+  * record
+  * ant(func,...)
+ */
+class Output(stagenum:Int, iter_num:Int, ant_num:Int, is_par:String, par_num:Int,
+             record:Record, val ant:T_Ant) extends Serializable{
+
+  override def toString(): String ={
+    val sb = new StringBuilder("")
+    sb.append(stagenum).append(",")
+    sb.append(iter_num).append(",")
+    sb.append(ant_num).append(",")
+    sb.append(is_par).append(",")
+    sb.append(par_num).append(",")
+    sb.append(record.time_run).append(",")
+    sb.append(record.time_everyiter).append(",")
+    sb.append(ant.Fobj).append(",")
+    sb.append(ant.b_s.toSeq.toString().replace(",","-")).append(":X,")
+    sb.append(ant.g_s.toSeq.toString().replace(",","-")).append(":ground,")
+    sb.append(ant.c_s.sum).append(":costs,")
+    sb.append(ant.m_s.toSeq.toString().replace(",","-")).append(":manpower,")
+    for(i <- 0 until ant.Xdsa.length){
+      if(ant.Xdsa(i) >0)
+        sb.append("(").append(i+1).append("_").append(ant.Xdsa(i)).append(")")
+    }
+    //sb.append("\r\n")
+    sb.toString()
+  }
+
+}
+
+object Output{
+
+  def apply(stagenum:Int, iter_num:Int, ant_num:Int, is_par:String, par_num:Int,
+            record:Record, bestAnts:ArrayBuffer[T_Ant]): Vector[Output] = {
+    bestAnts.map(x=> new Output(stagenum, iter_num, ant_num, is_par, par_num, record, x)).toVector
+  }
+}
