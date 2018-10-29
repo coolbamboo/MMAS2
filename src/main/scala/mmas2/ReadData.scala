@@ -11,7 +11,7 @@ case class AVS(s:Int, v:Int, Gs:Int)
 case class DSAK_Jup(num:Int,d:Int, s:Int, a:Int, Kdsa:Double, Jup:Int = 0)
 case class SANG(s:Int, a:Int, nsa:Int, gsa:Double)
 
-object ReadData{
+class ReadData(localpath:String="hdfs") extends Serializable{
 
   val path = "hdfs://192.168.120.133:8020/WTA/data/input/"
   val avs_file = Map(12->"svg.csv",180->"1.csv")
@@ -51,21 +51,36 @@ object ReadData{
 
   private def dealAVS(sc : SparkContext,stagenum:Int) = {
     //1, svg
-    val rawAVS = sc.textFile(path + avs_file(stagenum))
+    var rawAVS: RDD[String] = null
+    if(localpath.equals("hdfs")) {
+      rawAVS = sc.textFile(path + avs_file(stagenum))
+    }else{
+      rawAVS = sc.textFile(localpath + avs_file(stagenum))
+    }
     val pasedAVS = rawAVS.map(line => parseAVS(line))
     pasedAVS
   }
 
   private def dealDSAK(sc:SparkContext,stagenum:Int) = {
     //2, dsak
-    val rawDSAK = sc.textFile(path + dsak_file(stagenum))
+    var rawDSAK:RDD[String] = null
+    if(localpath.equals("hdfs")) {
+      rawDSAK = sc.textFile(path + dsak_file(stagenum))
+    }else{
+      rawDSAK = sc.textFile(localpath + dsak_file(stagenum))
+    }
     val pasedDSAK = rawDSAK.map(line => parseDSAK(line))
     pasedDSAK
   }
 
   private def dealSANG(sc: SparkContext,stagenum:Int) = {
     //3, sang
-    val rawSANG = sc.textFile(path + sang_file(stagenum))
+    var rawSANG:RDD[String] = null
+    if(localpath.equals("hdfs")){
+      rawSANG = sc.textFile(path + sang_file(stagenum))
+    }else{
+      rawSANG = sc.textFile(localpath + sang_file(stagenum))
+    }
     val pasedSANG = rawSANG.map(line => parseSANG(line))
     pasedSANG
   }

@@ -21,7 +21,7 @@ object common {
   val pher0 = 1
   val pher_min = 0.01*pher0
   val pher_max = 10 * pher0
-  val pher_reset = 1
+  val pher_reset = 0.05
   val rou = 0.01
   //val ANT_NUM = 200 // 40 || 200
   //val iter = 1000 //iteration num

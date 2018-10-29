@@ -1,8 +1,14 @@
 package mmas2
 
-import scala.collection.mutable.ArrayBuffer
-import common._
+import java.io._
+
+import mmas2.common._
+import org.apache.spark.SparkContext
+import org.apache.spark.broadcast.Broadcast
 import org.apache.spark.rdd.RDD
+
+import scala.collection.mutable.ArrayBuffer
+import scala.reflect.ClassTag
 
 /**
  * Created by root on 2016/4/6.
@@ -51,5 +57,51 @@ object Util {
         bestAnts.update(min_index, myant)
       }
     }
+  }
+
+  def saveToLocal(outputs : Vector[Output]): Unit ={
+    import java.io.{BufferedWriter, FileOutputStream, IOException, OutputStreamWriter}
+    var out : BufferedWriter = null
+    try {
+      out = new BufferedWriter(
+        new OutputStreamWriter(
+          new FileOutputStream("./results.csv", true)))
+      outputs.map(output => {
+        out.write(output.toString() + "\r\n")
+      })
+    } catch {
+      case e: Exception =>
+        e.printStackTrace()
+    } finally try
+      out.close()
+    catch {
+      case e: IOException =>
+        e.printStackTrace()
+    }
+  }
+}
+
+// This wrapper lets us update brodcast variables
+// without running into serialization issues
+case class BroadcastWrapper[T: ClassTag](
+                                          @transient private val sc: SparkContext,
+                                          @transient private val _v: T) {
+
+  @transient private var v = sc.broadcast(_v)
+
+  def update(newValue: T, blocking: Boolean = false): Unit = {
+    // 删除RDD是否需要锁定
+    v.unpersist(blocking)
+    v = sc.broadcast(newValue)
+  }
+
+  def value: T = v.value
+
+  private def writeObject(out: ObjectOutputStream): Unit = {
+    out.writeObject(v)
+  }
+
+  private def readObject(in: ObjectInputStream): Unit = {
+    v = in.readObject().asInstanceOf[Broadcast[T]]
   }
 }

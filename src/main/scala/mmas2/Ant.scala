@@ -4,7 +4,6 @@ import mmas2.common._
 
 import scala.math.pow
 import scala.util.Random
-
 /**
  * Created by root on 2016/3/5.
  * ant used after deal_U
@@ -14,20 +13,23 @@ import scala.util.Random
  *
   * stagenum:decision param's num(12\180)
  */
-class Ant(g_Pher:Array[Array[Double]], stagenum:Int, Jmax:Int,
-          vdsak_j:Array[DSAK_Jup], rawAVS:Array[AVS], rawSANG:Array[SANG])
-extends Serializable with T_Ant {
+class Ant(init_Pher:Array[Array[Double]], stagenum:Int, Jmax:Int,
+          vdsak_j:Array[DSAK_Jup], rawAVS:Array[AVS], rawSANG:Array[SANG],
+          algo_sele: String) extends Serializable with T_Ant {
 
   val avss = rawAVS
   val sangs = rawSANG
   val dsaks = vdsak_j
 
-  override var pathlength = 0//variable in stage length
-  val local_step = 1//optimal step
+  /**
+    * variable in stage length(the last non-zero row num)
+    */
+  override var pathlength = 0
+  val local_step = 1//optimal added incremental
 
   val prob:Array[Array[Double]] = Array.ofDim(stagenum, Jmax + 1)
   //init（catch global pher）
-  override val pher:Array[Array[Double]] = g_Pher.clone()
+  override val pher:Array[Array[Double]] = init_Pher.clone()
   //decision variable
   override val Xdsa :Array[Int] = new Array(stagenum)
   //object fun
@@ -41,8 +43,6 @@ extends Serializable with T_Ant {
   //Manpower
   override var m_s:Array[Double] = new Array(D(stagenum))
 
-
-
   //search once
   def search(): Unit = {
     dsaks.map {
@@ -52,7 +52,7 @@ extends Serializable with T_Ant {
           //choose which j?
           val l = constraints(num)//j's up bound
           if(l == 0){//if l is 0, after l 's variable are all 0
-            pathlength = num
+            pathlength = num-1
             //no use to compute
             return
           }else{
@@ -158,11 +158,10 @@ extends Serializable with T_Ant {
   }
 
   private def local_optimization():Unit = {
-    //to every decision variable Xdsa, add step,if match constraint,success
-    for(i <- 0 until pathlength){
-      Xdsa(i) = Xdsa(i) + local_step
-      if(!matchconstraints_all_xdsa(pathlength)) Xdsa(i) = Xdsa(i) - local_step
-    }
+    //to random one decision variable Xdsa, add step,if match constraint,success
+    val i = (new Random).nextInt(stagenum)
+    Xdsa(i) = Xdsa(i) + local_step
+    if(!matchconstraints_all_xdsa(pathlength)) Xdsa(i) = Xdsa(i) - local_step
   }
 
   private def computeObjectFunction(): Unit ={
@@ -215,10 +214,11 @@ extends Serializable with T_Ant {
   override def dealflow(): Unit ={
     //
     search()
-    /*
     //局部优化
-    local_optimization()
-    */
+    algo_sele.trim() match {
+      case "basic" =>
+      case _ => local_optimization()
+    }
     //
     computeObjectFunction()
     //
