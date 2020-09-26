@@ -42,7 +42,7 @@ class ReadData(dataPath: String = "hdfs") extends Serializable {
     SANG(s, a, nsa, gsa)
   }
 
-  def apply(sc : SparkContext, stagenum:Int) = {
+  def apply(sc : SparkContext, stagenum:Int): (RDD[AVS], RDD[DSAK_Jup], RDD[SANG]) = {
     (dealAVS(sc,stagenum) , dealDSAK(sc,stagenum),  dealSANG(sc,stagenum))
   }
 

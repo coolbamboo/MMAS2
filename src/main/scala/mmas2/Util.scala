@@ -23,7 +23,7 @@ object Util {
 
   def getBestAnt(bestants: ArrayBuffer[T_Ant]): T_Ant = {
     bestants.max(new Ordering[T_Ant] {
-      def compare(a: T_Ant, b: T_Ant) = a.Fobj compare b.Fobj
+      def compare(a: T_Ant, b: T_Ant): Int = a.Fobj compare b.Fobj
     })
   }
 
@@ -74,16 +74,13 @@ object Util {
   def deal_Jup(stagenum: Int, avss: Array[AVS], dsaks: Array[DSAK_Jup]): (Array[DSAK_Jup], Array[AVS]) = {
 
     val Vdsak_j = dsaks.map {
-      _ match {
-        case DSAK_Jup(num, d, s, a, kdsa, j) => {
-          val gs = avss.filter(x => x.s == s).map(x => x.Gs)
-          val jup = Array(
-            B(stagenum)(d - 1), gs(0) / t(stagenum)(d - 1), Cmax(stagenum) / c(stagenum)(d - 1), M(stagenum)(d - 1) / m(stagenum)(d - 1)
-          ).min
-          if (jup < 0) throw new Exception("jup is wrong！")
-          DSAK_Jup(num, d, s, a, kdsa, jup)
-        }
-      }
+      case DSAK_Jup(num, d, s, a, kdsa, _) =>
+        val gs = avss.filter(x => x.s == s).map(x => x.Gs)
+        val jup = Array(
+          B(stagenum)(d - 1), gs(0) / t(stagenum)(d - 1), Cmax(stagenum) / c(stagenum)(d - 1), M(stagenum)(d - 1) / m(stagenum)(d - 1)
+        ).min
+        if (jup < 0) throw new Exception("jup is wrong！")
+        DSAK_Jup(num, d, s, a, kdsa, jup)
     }
     (Vdsak_j, avss)
   }

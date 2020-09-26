@@ -9,7 +9,6 @@ import org.apache.spark.{SparkConf, SparkContext}
 
 import scala.collection.mutable.ArrayBuffer
 
-//append dfs
 /**
   * Created by root on 2016/3/6.
   * imported parameter:
@@ -76,21 +75,18 @@ object main {
     sc.register(globalBestAnts, "globalBestAnts")
 
     algoSele.trim match {
-      case "basic" => {
+      case "basic" =>
         Basic_run(iter_num, ant_num, bestants, record)
         //end
         val stoptime = new Date().getTime
         record.time_run = stoptime - starttime
-      }
 
-      case _ => {
-        //must add here
+      case _ =>
         val modelAnt = new Ant(g_Pher, stagenum, J_max, dsak_j, avs, sang)
         Distri_run(iter_num, ant_num, modelAnt, globalBestAnts, sc, record)
         //end
         val stoptime = new Date().getTime
         record.time_run = stoptime - starttime
-      }
     }
 
     //output
@@ -103,13 +99,11 @@ object main {
         dataPath, runStyle, algoSele, record, globalBestAnts.value).sortWith(_.ant.Fobj > _.ant.Fobj)
     }
     runStyle.trim match {
-      case "local" => {
+      case "local" =>
         Util.saveToLocal(outputs)
-      }
-      case _ => {
+      case _ =>
         val hdfs_path = "hdfs://192.168.120.133:8020/WTA/data/output/"
         sc.parallelize(outputs, 1).saveAsTextFile(hdfs_path)
-      }
     }
 
     sc.stop()

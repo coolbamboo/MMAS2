@@ -32,11 +32,11 @@ trait Run {
 class Basic_run(val ANT_NUM: Int, val bestAnts: ArrayBuffer[T_Ant])
   extends Serializable with Run {
 
-  val local_antGroup = ArrayBuffer[T_Ant]() //every iter' ants
+  val local_antGroup: ArrayBuffer[T_Ant] = ArrayBuffer[T_Ant]() //every iter' ants
   override val modelAnt: Ant = Util.getBestAnt(bestAnts).asInstanceOf[Ant]
   override var bestAnt: T_Ant = modelAnt
 
-  def geneAllAntsOneIter() = {
+  def geneAllAntsOneIter(): Unit = {
     //empty local ant group
     local_antGroup.clear()
     //gene ants
@@ -75,7 +75,7 @@ class Basic_run(val ANT_NUM: Int, val bestAnts: ArrayBuffer[T_Ant])
     maxmincheck(g_Pher)
   }
 
-  def local_updatePher() = {
+  def local_updatePher(): Unit = {
     //local best ant
     bestAnt = Util.getBestAnt(bestAnts)
     val g_Pher = bestAnt.pher
@@ -165,7 +165,7 @@ class Distri_run(val ANT_NUM: Int, val modelAntT: T_Ant, val globalBestAnts: Ant
     this.globalBestAnts.add(bestAnt)
   }
 
-  def local_updatePher(antsLocalRDD: RDD[(Int, T_Ant)]) = {
+  def local_updatePher(antsLocalRDD: RDD[(Int, T_Ant)]): Unit = {
     //action!
     val arrayFobj: Array[(Double, Int)] = antsLocalRDD.combineByKey(
       (v: T_Ant) => (v.Fobj, 1),

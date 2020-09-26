@@ -44,25 +44,22 @@ class Ant(init_Pher: Array[Array[Double]], val stagenum: Int, val Jmax: Int,
 
   //search once
   def search(): Unit = {
-    dsaks.map {
-      _ match {
-        case DSAK_Jup(num,d,s,a,kdsa,jup)=>{
-          //deal every stage
-          //choose which j?
-          val l = constraints(num)//j's up bound
-          if(l == 0){//if l is 0, after l 's variable are all 0
-            pathlength = num-1
-            //no use to compute
-            return
-          }else{
-            //choose which l?
-            val probl:Array[Double] = new Array[Double](l+1)
-            //this row:num to random variable xdsa
-            Xdsa(num-1) = computeProb_l(num,l,probl)
-          }
-          pathlength = num//row num
+    dsaks.foreach {
+      case DSAK_Jup(num, d, s, a, kdsa, jup) =>
+        //deal every stage
+        //choose which j?
+        val l = constraints(num) //j's up bound
+        if (l == 0) { //if l is 0, after l 's variable are all 0
+          pathlength = num - 1
+          //no use to compute
+          return
+        } else {
+          //choose which l?
+          val probl: Array[Double] = new Array[Double](l + 1)
+          //this row:num to random variable xdsa
+          Xdsa(num - 1) = computeProb_l(num, l, probl)
         }
-      }
+        pathlength = num //row num
     }
   }
   //to some stage i, judge if match constraint before i, if true, return max j
@@ -83,7 +80,7 @@ class Ant(init_Pher: Array[Array[Double]], val stagenum: Int, val Jmax: Int,
     )
     //befor row-1 variable is done, compute this row 's max j
     var l:Int = 0
-    dsaks.filter(x=>x.num==row).map{dsak=>{
+    dsaks.filter(x=>x.num==row).foreach{ dsak => {
       val d=dsak.d
       val s=dsak.s
       var gs:Array[Int] = avss.filter(x=>x.s==s).map(x=>x.Gs)
@@ -167,46 +164,45 @@ class Ant(init_Pher: Array[Array[Double]], val stagenum: Int, val Jmax: Int,
 
   private def computeObjectFunction(): Unit ={
     var f = 0.0
-    avss.map(avs=>{
+    avss.foreach(avs=>{
       val s = avs.s
       val vs = avs.v
       //attacker 's TT
       var attack:Double = 1.0
-      sangs.filter(x=>x.s==s).map(sang=>{
+      sangs.filter(x=>x.s==s).foreach(sang => {
         val a = sang.a
         val nsa = sang.nsa
         val gsa = sang.gsa
         //defense:（1-kdsa）xdsa/nsa TT
         var defense:Double = 1.0
-        dsaks.filter(dsak=>dsak.s==s && dsak.a==a).map{dsak1=>{
+        dsaks.filter(dsak=>dsak.s==s && dsak.a==a).foreach{ dsak1 => {
           val num = dsak1.num
-          val d = dsak1.d
           val kdsa = dsak1.Kdsa
-          defense = defense*pow(1.0-kdsa,Xdsa(num-1)/nsa.toDouble)
+          defense = defense * pow(1.0 - kdsa, Xdsa(num - 1) / nsa.toDouble)
         }
         }
         attack = attack*pow(1.0-defense*gsa,nsa)
       })
-      f=f+vs*attack
+      f = f + vs * attack
     })
-    Fobj = f / avss.map(_.v).reduce(_+_)//%
+    Fobj = f / avss.map(_.v).sum
   }
 
   private def constraintShow(): Unit ={
     //D
-    for(i <- 0 until b_s.length){
+    for(i <- b_s.indices){
       b_s(i) = dsaks.filter(_.d==i+1).map(dsak=>Xdsa(dsak.num-1)).sum
     }
     //C
-    for(i <- 0 until c_s.length){
+    for(i <- c_s.indices){
       c_s(i) = dsaks.filter(_.d==i+1).map(dsak=>c(stagenum)(i)*Xdsa(dsak.num-1)).sum
     }
     //M
-    for(i <- 0 until m_s.length){
+    for(i <- m_s.indices){
       m_s(i) = dsaks.filter(_.d==i+1).map(dsak=>m(stagenum)(i)*Xdsa(dsak.num-1)).sum
     }
     //G
-    for(i <- 0 until g_s.length){
+    for(i <- g_s.indices){
       g_s(i) = dsaks.filter(_.s==i+1).map(dsak=>t(stagenum)(dsak.d-1)*Xdsa(dsak.num-1)).sum
     }
   }

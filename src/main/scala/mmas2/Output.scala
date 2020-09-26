@@ -19,7 +19,7 @@ class Output(stagenum: Int, iter_num: Int, ant_num: Int, task_num: Int,
              dataPath: String, runStyle: String, algoSele: String,
              record: Record, val ant: T_Ant) extends Serializable {
 
-  override def toString(): String = {
+  override def toString: String = {
     val sb = new StringBuilder("")
     sb.append(stagenum).append(",")
     sb.append(iter_num).append(",")
@@ -36,7 +36,7 @@ class Output(stagenum: Int, iter_num: Int, ant_num: Int, task_num: Int,
     sb.append(ant.g_s.toSeq.toString().replace(",", "-")).append(":ground,")
     sb.append(ant.c_s.sum).append(":costs,")
     sb.append(ant.m_s.toSeq.toString().replace(",", "-")).append(":manpower,")
-    for (i <- 0 until ant.Xdsa.length) {
+    for (i <- ant.Xdsa.indices) {
       if (ant.Xdsa(i) > 0)
         sb.append("(").append(i + 1).append("_").append(ant.Xdsa(i)).append(")")
     }
