@@ -1,37 +1,36 @@
 package mmas2
 
-import mmas2.common._
+import mmas2.Para._
 
 import scala.math.pow
 import scala.util.Random
+
 /**
- * Created by root on 2016/3/5.
- * ant used after deal_U
- * use ant：
- * search for decision variable
- * compute object fun
- *
+  * ant used after deal_U
+  * use ant：
+  * search for decision variable
+  * compute object fun
+  *
   * stagenum:decision param's num(12\180)
- */
-class Ant(init_Pher:Array[Array[Double]], stagenum:Int, Jmax:Int,
-          vdsak_j:Array[DSAK_Jup], rawAVS:Array[AVS], rawSANG:Array[SANG],
-          algo_sele: String) extends Serializable with T_Ant {
+  */
+class Ant(init_Pher: Array[Array[Double]], val stagenum: Int, val Jmax: Int,
+          vdsak_j: Array[DSAK_Jup], rawAVS: Array[AVS], rawSANG: Array[SANG]
+         ) extends Serializable with T_Ant {
 
-  val avss = rawAVS
-  val sangs = rawSANG
-  val dsaks = vdsak_j
-
+  val avss: Array[AVS] = rawAVS
+  val sangs: Array[SANG] = rawSANG
+  val dsaks: Array[DSAK_Jup] = vdsak_j
   /**
     * variable in stage length(the last non-zero row num)
     */
   override var pathlength = 0
-  val local_step = 1//optimal added incremental
+  val local_step = 1 //optimal added incremental
 
-  val prob:Array[Array[Double]] = Array.ofDim(stagenum, Jmax + 1)
+  val prob: Array[Array[Double]] = Array.ofDim(stagenum, Jmax + 1)
   //init（catch global pher）
-  override val pher:Array[Array[Double]] = init_Pher.clone()
+  override val pher: Array[Array[Double]] = init_Pher.clone()
   //decision variable
-  override val Xdsa :Array[Int] = new Array(stagenum)
+  override val Xdsa: Array[Int] = new Array(stagenum)
   //object fun
   override var Fobj: Double = 0.0
   //D(defend weapon amount)
@@ -113,9 +112,11 @@ class Ant(init_Pher:Array[Array[Double]], stagenum:Int, Jmax:Int,
         prob(num - 1)(j) = probl(j)
       }
       //choose
+      val random = new Random()
+      //random.setSeed(Thread.currentThread().getId)
       var temp: Double = 0.0
+      temp = random.nextDouble() //0~1.0之间
 
-      temp = (new Random).nextDouble() //0~1.0之间
       import scala.util.control.Breaks._
       breakable {
         for (i <- 0 to l) {
@@ -165,7 +166,6 @@ class Ant(init_Pher:Array[Array[Double]], stagenum:Int, Jmax:Int,
   }
 
   private def computeObjectFunction(): Unit ={
-
     var f = 0.0
     avss.map(avs=>{
       val s = avs.s
@@ -214,11 +214,7 @@ class Ant(init_Pher:Array[Array[Double]], stagenum:Int, Jmax:Int,
   override def dealflow(): Unit ={
     //
     search()
-    //局部优化
-    algo_sele.trim() match {
-      case "basic" =>
-      case _ => local_optimization()
-    }
+    //local_optimization()
     //
     computeObjectFunction()
     //

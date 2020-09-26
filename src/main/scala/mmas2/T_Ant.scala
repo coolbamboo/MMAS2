@@ -1,7 +1,7 @@
 package mmas2
 
 /**
-  * Created by root on 2016/8/23.
+  * interface for ant
   */
 trait T_Ant {
 

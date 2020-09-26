@@ -1,25 +1,19 @@
 package mmas2
 
-import java.io._
-
-import mmas2.common._
-import org.apache.spark.SparkContext
-import org.apache.spark.broadcast.Broadcast
-import org.apache.spark.rdd.RDD
+import mmas2.Para._
 
 import scala.collection.mutable.ArrayBuffer
-import scala.reflect.ClassTag
 
 /**
- * Created by root on 2016/4/6.
- */
+  * tool methods
+  */
 object Util {
-  def morethan(first:Array[Int], second:Array[Int]):Boolean={
-    if(first.length != second.length) throw new Exception("compared array length not equal")
+  def morethan(first: Array[Int], second: Array[Int]): Boolean = {
+    if (first.length != second.length) throw new Exception("compared array length not equal")
     var temp = false
-    for(i <- 0 until first.length){
+    for (i <- first.indices) {
       //one more than , true
-      if(first(i) > second(i)) {
+      if (first(i) > second(i)) {
         temp = true
         return temp
       }
@@ -27,34 +21,30 @@ object Util {
     temp
   }
 
-  def getBestAnt(bestants : ArrayBuffer[T_Ant]) : T_Ant = {
+  def getBestAnt(bestants: ArrayBuffer[T_Ant]): T_Ant = {
     bestants.max(new Ordering[T_Ant] {
       def compare(a: T_Ant, b: T_Ant) = a.Fobj compare b.Fobj
     })
   }
 
-  def getBestAnt(bestants : RDD[T_Ant]) : T_Ant = {
-    bestants.collect().max(new Ordering[T_Ant] {
-      def compare(a: T_Ant, b: T_Ant) = a.Fobj compare b.Fobj
-    })
-  }
-
-  def addInBestants(bestAnts:ArrayBuffer[T_Ant], myant:T_Ant) :Unit = {
-    if (bestAnts.length < best_result_num) {
+  def addInBestants(bestAnts: ArrayBuffer[T_Ant], myant: T_Ant, length_max: Int): Unit = {
+    if (bestAnts.length < length_max) {
       bestAnts.append(myant)
     }
     else {
       //if better than bestAnts,update
       var min_index = 0
       var minobj = Double.MaxValue
-      for (i <- 0 until bestAnts.length) {
+      for (i <- bestAnts.indices) {
         if (bestAnts(i).Fobj < minobj) {
           min_index = i
           minobj = bestAnts(i).Fobj
         }
       }
-      if (myant.Fobj > minobj) {
-        bestAnts.update(min_index, myant)
+      if (myant.Fobj >= minobj) {
+        bestAnts.synchronized {
+          bestAnts.update(min_index, myant)
+        }
       }
     }
   }
@@ -66,7 +56,7 @@ object Util {
       out = new BufferedWriter(
         new OutputStreamWriter(
           new FileOutputStream("./results.csv", true)))
-      outputs.map(output => {
+      outputs.foreach(output => {
         out.write(output.toString() + "\r\n")
       })
     } catch {
@@ -79,29 +69,22 @@ object Util {
         e.printStackTrace()
     }
   }
-}
 
-// This wrapper lets us update brodcast variables
-// without running into serialization issues
-case class BroadcastWrapper[T: ClassTag](
-                                          @transient private val sc: SparkContext,
-                                          @transient private val _v: T) {
+  //compute J's max bound
+  def deal_Jup(stagenum: Int, avss: Array[AVS], dsaks: Array[DSAK_Jup]): (Array[DSAK_Jup], Array[AVS]) = {
 
-  @transient private var v = sc.broadcast(_v)
-
-  def update(newValue: T, blocking: Boolean = false): Unit = {
-    // 删除RDD是否需要锁定
-    v.unpersist(blocking)
-    v = sc.broadcast(newValue)
-  }
-
-  def value: T = v.value
-
-  private def writeObject(out: ObjectOutputStream): Unit = {
-    out.writeObject(v)
-  }
-
-  private def readObject(in: ObjectInputStream): Unit = {
-    v = in.readObject().asInstanceOf[Broadcast[T]]
+    val Vdsak_j = dsaks.map {
+      _ match {
+        case DSAK_Jup(num, d, s, a, kdsa, j) => {
+          val gs = avss.filter(x => x.s == s).map(x => x.Gs)
+          val jup = Array(
+            B(stagenum)(d - 1), gs(0) / t(stagenum)(d - 1), Cmax(stagenum) / c(stagenum)(d - 1), M(stagenum)(d - 1) / m(stagenum)(d - 1)
+          ).min
+          if (jup < 0) throw new Exception("jup is wrong！")
+          DSAK_Jup(num, d, s, a, kdsa, jup)
+        }
+      }
+    }
+    (Vdsak_j, avss)
   }
 }
