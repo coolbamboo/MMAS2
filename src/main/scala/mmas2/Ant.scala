@@ -1,9 +1,8 @@
 package mmas2
 
+import java.util.concurrent.ThreadLocalRandom
 import mmas2.Para._
-
 import scala.math.pow
-import scala.util.Random
 
 /**
   * ant used after deal_U
@@ -109,10 +108,9 @@ class Ant(init_Pher: Array[Array[Double]], val stagenum: Int, val Jmax: Int,
         prob(num - 1)(j) = probl(j)
       }
       //choose
-      val random = new Random()
+      val random : ThreadLocalRandom = ThreadLocalRandom.current()
       //random.setSeed(Thread.currentThread().getId)
-      var temp: Double = 0.0
-      temp = random.nextDouble() //0~1.0之间
+      var temp: Double = random.nextDouble(0, 1.0) //0~1.0之间
 
       import scala.util.control.Breaks._
       breakable {
@@ -157,7 +155,7 @@ class Ant(init_Pher: Array[Array[Double]], val stagenum: Int, val Jmax: Int,
 
   private def local_optimization():Unit = {
     //to random one decision variable Xdsa, add step,if match constraint,success
-    val i = (new Random).nextInt(stagenum)
+    val i = ThreadLocalRandom.current().nextInt(stagenum)
     Xdsa(i) = Xdsa(i) + local_step
     if(!matchconstraints_all_xdsa(pathlength)) Xdsa(i) = Xdsa(i) - local_step
   }

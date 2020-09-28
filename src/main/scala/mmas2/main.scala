@@ -2,11 +2,9 @@ package mmas2
 
 
 import java.util.Date
-
 import mmas2.Para._
 import mmas2.Util.deal_Jup
 import org.apache.spark.{SparkConf, SparkContext}
-
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -19,7 +17,7 @@ import scala.collection.mutable.ArrayBuffer
   * args4: dataPath,data file is sourcing from local(fileurl) or "hdfs"
   * args5: "local" running , or other running style
   * args6: basic run MMAS, or improved(distributed) run MMAS
-  * e.x. 12 1000 40 4 C:\Users\caoming\Desktop\mmastable\ local basic
+  * e.x. 12 1000 40 4 D:\myProjects\MMAS2\datafiles\ local basic
   */
 object main {
   def main(args: Array[String]) {
@@ -71,6 +69,7 @@ object main {
       new Ant(g_Pher, stagenum, J_max, dsak_j, avs, sang)
     )
     //init an accumulator
+    //这里的累加器其实没用。累加器应该用在RDD中。这里的累加器其实就是个driver端的变量
     val globalBestAnts = new AntAccumulator(best_result_num)
     sc.register(globalBestAnts, "globalBestAnts")
 
