@@ -121,7 +121,7 @@ class Distri_run(val ANT_NUM: Int, val modelAntT: T_Ant, val globalBestAnts: Ant
       //globalBestAnts.add(ant)
       ant
     })
-    //如果在这里不用下面这种方法求最好的蚂蚁，可以在上面的代码把蚂蚁放到累加器里
+    //如果在这里不用下面action这种方法求最好的蚂蚁，可以在上面的代码把蚂蚁放到累加器里
     //find max Fobj ant
     val bestLocalAntRDD = antsLocalRDD.foldByKey(modelAnt)((a, b) => {
       if (a.Fobj >= b.Fobj)
@@ -130,7 +130,9 @@ class Distri_run(val ANT_NUM: Int, val modelAntT: T_Ant, val globalBestAnts: Ant
         b
     })
     //action
-    val best_local_ant = bestLocalAntRDD.collect()(0)._2
+    val best_local_ant = bestLocalAntRDD.collect().map(_._2).max(new Ordering[T_Ant] {
+      def compare(a: T_Ant, b: T_Ant): Int = a.Fobj compare b.Fobj
+    })
     globalBestAnts.add(best_local_ant)
     bestLocalAnt = best_local_ant
     antsLocalRDD

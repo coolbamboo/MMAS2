@@ -68,7 +68,7 @@ class Ant(init_Pher: Array[Array[Double]], val stagenum: Int, val Jmax: Int,
     val G_total:Array[Int] = new Array(S(stagenum))
     var C_total = 0
     var M_total:Array[Int] =new Array(M(stagenum).length)
-    val cst_dsak_j = dsaks.filter(x=>x.num<row).map(dsak=>{
+    val cst_dsak_j = dsaks.filter(x=>x.num<row).map(dsak => {
       val d=dsak.d
       val s=dsak.s
       B_total(d-1) = B_total(d-1) + Xdsa(dsak.num-1)

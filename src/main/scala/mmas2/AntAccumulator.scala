@@ -4,7 +4,7 @@ import org.apache.spark.util.AccumulatorV2
 
 import scala.collection.mutable.ArrayBuffer
 
-class AntAccumulator(private val lenth_max: Int = 10) extends AccumulatorV2[T_Ant, ArrayBuffer[T_Ant]] {
+class AntAccumulator(private val lenth_max: Int) extends AccumulatorV2[T_Ant, ArrayBuffer[T_Ant]] {
 
   private var bestAnts: ArrayBuffer[T_Ant] = ArrayBuffer[T_Ant]()
   private val bound = lenth_max

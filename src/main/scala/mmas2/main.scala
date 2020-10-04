@@ -8,7 +8,6 @@ import org.apache.spark.{SparkConf, SparkContext}
 import scala.collection.mutable.ArrayBuffer
 
 /**
-  * Created by root on 2016/3/6.
   * imported parameter:
   * args0: stage num(variable num)
   * args1: iteration num
@@ -17,6 +16,7 @@ import scala.collection.mutable.ArrayBuffer
   * args4: dataPath,data file is sourcing from local(fileurl) or "hdfs"
   * args5: "local" running , or other running style
   * args6: basic run MMAS, or improved(distributed) run MMAS
+ * args7: max run num
   * e.x. 12 1000 40 4 D:\myProjects\MMAS2\datafiles\ local basic
   */
 object main {
@@ -29,6 +29,7 @@ object main {
     val dataPath = args(4)
     val runStyle = args(5)
     val algoSele = args(6)
+    val runmax_num = args(7).toInt
 
     val conf = new SparkConf().setAppName("WTA")
     if (task_num > 0)
@@ -44,67 +45,71 @@ object main {
       }
     }
 
-    val sc = new SparkContext(conf)
-    //ready to record
-    val record = new Record()
-    //read data
-    val (rawAVS, rawDSAK, rawSANG) = new ReadData(dataPath.trim).apply(sc, stagenum)
-    val avses = rawAVS.collect()
-    val dsaks = rawDSAK.collect()
-    val sang = rawSANG.collect()
-    //begin
-    val starttime = new Date().getTime
-    val (dsak_j, avs) = deal_Jup(stagenum, avses, dsaks)
-    //compute J max bound for Pher array
-    val J_max = dsak_j.map(dsak_j => dsak_j.Jup).max
-    //global pher and probability
-    val g_Pher: Array[Array[Double]] = Array.ofDim(stagenum, J_max + 1)
-    //init
-    for (i <- 0 until stagenum)
-      for (j <- 0 to J_max) {
-        g_Pher(i)(j) = pher_max
+    for (run <- 1 to runmax_num) {
+      println(s"第${run}次运行：")
+      val sc = new SparkContext(conf)
+      //ready to record
+      val record = new Record()
+      record.now_run = run
+      //read data
+      val (rawAVS, rawDSAK, rawSANG) = new ReadData(dataPath.trim).apply(sc, stagenum)
+      val avses = rawAVS.collect()
+      val dsaks = rawDSAK.collect()
+      val sang = rawSANG.collect()
+      //begin
+      val starttime = new Date().getTime
+      val (dsak_j, avs) = deal_Jup(stagenum, avses, dsaks)
+      //compute J max bound for Pher array
+      val J_max = dsak_j.map(dsak_j => dsak_j.Jup).max
+      //global pher and probability
+      val g_Pher: Array[Array[Double]] = Array.ofDim(stagenum, J_max + 1)
+      //init
+      for (i <- 0 until stagenum)
+        for (j <- 0 to J_max) {
+          g_Pher(i)(j) = pher_max
+        }
+      //init an ant, add in bestants
+      val bestants = ArrayBuffer[T_Ant](
+        new Ant(g_Pher, stagenum, J_max, dsak_j, avs, sang)
+      )
+      //init an accumulator
+      //这里的累加器其实没用。累加器应该用在RDD中。这里的累加器其实就是个driver端的变量
+      val globalBestAnts = new AntAccumulator(best_result_num)
+      sc.register(globalBestAnts, "globalBestAnts")
+
+      algoSele.trim match {
+        case "basic" =>
+          Basic_run(iter_num, ant_num, bestants, record)
+          //end
+          val stoptime = new Date().getTime
+          record.time_run = stoptime - starttime
+
+        case _ =>
+          val modelAnt = new Ant(g_Pher, stagenum, J_max, dsak_j, avs, sang)
+          Distri_run(iter_num, ant_num, modelAnt, globalBestAnts, sc, record)
+          //end
+          val stoptime = new Date().getTime
+          record.time_run = stoptime - starttime
       }
-    //init an ant, add in bestants
-    val bestants = ArrayBuffer[T_Ant](
-      new Ant(g_Pher, stagenum, J_max, dsak_j, avs, sang)
-    )
-    //init an accumulator
-    //这里的累加器其实没用。累加器应该用在RDD中。这里的累加器其实就是个driver端的变量
-    val globalBestAnts = new AntAccumulator(best_result_num)
-    sc.register(globalBestAnts, "globalBestAnts")
 
-    algoSele.trim match {
-      case "basic" =>
-        Basic_run(iter_num, ant_num, bestants, record)
-        //end
-        val stoptime = new Date().getTime
-        record.time_run = stoptime - starttime
+      //output
+      var outputs: Vector[Output] = null
+      if (globalBestAnts.isZero) {
+        outputs = Output(stagenum, iter_num, ant_num, task_num,
+          dataPath, runStyle, algoSele, record, bestants).sortWith(_.ant.Fobj > _.ant.Fobj)
+      } else {
+        outputs = Output(stagenum, iter_num, ant_num, task_num,
+          dataPath, runStyle, algoSele, record, globalBestAnts.value).sortWith(_.ant.Fobj > _.ant.Fobj)
+      }
+      runStyle.trim match {
+        case "local" =>
+          Util.saveToLocal(outputs)
+        case _ =>
+          val hdfs_path = "hdfs://192.168.120.133:8020/WTA/data/output/"
+          sc.parallelize(outputs, 1).saveAsTextFile(hdfs_path)
+      }
 
-      case _ =>
-        val modelAnt = new Ant(g_Pher, stagenum, J_max, dsak_j, avs, sang)
-        Distri_run(iter_num, ant_num, modelAnt, globalBestAnts, sc, record)
-        //end
-        val stoptime = new Date().getTime
-        record.time_run = stoptime - starttime
+      sc.stop()
     }
-
-    //output
-    var outputs: Vector[Output] = null
-    if (globalBestAnts.isZero) {
-      outputs = Output(stagenum, iter_num, ant_num, task_num,
-        dataPath, runStyle, algoSele, record, bestants).sortWith(_.ant.Fobj > _.ant.Fobj)
-    } else {
-      outputs = Output(stagenum, iter_num, ant_num, task_num,
-        dataPath, runStyle, algoSele, record, globalBestAnts.value).sortWith(_.ant.Fobj > _.ant.Fobj)
-    }
-    runStyle.trim match {
-      case "local" =>
-        Util.saveToLocal(outputs)
-      case _ =>
-        val hdfs_path = "hdfs://192.168.120.133:8020/WTA/data/output/"
-        sc.parallelize(outputs, 1).saveAsTextFile(hdfs_path)
-    }
-
-    sc.stop()
   }
 }

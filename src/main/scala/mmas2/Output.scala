@@ -21,6 +21,7 @@ class Output(stagenum: Int, iter_num: Int, ant_num: Int, task_num: Int,
 
   override def toString: String = {
     val sb = new StringBuilder("")
+    sb.append(s"当前是第${record.now_run}次运行,")
     sb.append(stagenum).append(",")
     sb.append(iter_num).append(",")
     sb.append(ant_num).append(",")
