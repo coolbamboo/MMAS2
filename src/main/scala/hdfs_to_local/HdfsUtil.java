@@ -17,8 +17,8 @@ import java.net.URISyntaxException;
  */
 public class HdfsUtil {
     public static void main(String args[]) throws URISyntaxException, IOException {
-        String hdfs_host = "hdfs://192.168.120.133:8020/";
-        String hdfs_dir = "hdfs://192.168.120.133:8020/WTA/data/output/";
+        String hdfs_host = "hdfs://192.168.30.50:9000/";
+        String hdfs_dir = "hdfs://192.168.30.50:9000/WTA/data/output/";
         Path path = new Path(hdfs_dir + "part-00000");
 
         FileSystem fs = FileSystem.get(new URI(hdfs_host), new Configuration());

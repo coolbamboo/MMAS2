@@ -21,5 +21,7 @@ trait T_Ant {
   //Manpower
   var m_s:Array[Double]
 
+  def setRandom(seed : Long)
+
   def dealflow()
 }

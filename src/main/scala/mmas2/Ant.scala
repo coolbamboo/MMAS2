@@ -2,7 +2,11 @@ package mmas2
 
 import java.util.concurrent.ThreadLocalRandom
 import mmas2.Para._
+import mmas2.Util.randval
+
+import java.util.Date
 import scala.math.pow
+import scala.util.Random
 
 /**
   * ant used after deal_U
@@ -19,6 +23,8 @@ class Ant(init_Pher: Array[Array[Double]], val stagenum: Int, val Jmax: Int,
   val avss: Array[AVS] = rawAVS
   val sangs: Array[SANG] = rawSANG
   val dsaks: Array[DSAK_Jup] = vdsak_j
+  var rand : Random = _
+
   /**
     * variable in stage length(the last non-zero row num)
     */
@@ -40,6 +46,10 @@ class Ant(init_Pher: Array[Array[Double]], val stagenum: Int, val Jmax: Int,
   override var c_s:Array[Double] = new Array(D(stagenum))
   //Manpower
   override var m_s:Array[Double] = new Array(D(stagenum))
+
+  def setRandom(seed : Long) : Unit = {
+    this.rand = new scala.util.Random(seed)
+  }
 
   //search once
   def search(): Unit = {
@@ -108,9 +118,12 @@ class Ant(init_Pher: Array[Array[Double]], val stagenum: Int, val Jmax: Int,
         prob(num - 1)(j) = probl(j)
       }
       //choose
-      val random : ThreadLocalRandom = ThreadLocalRandom.current()
+      //val random : ThreadLocalRandom = ThreadLocalRandom.current()
       //random.setSeed(Thread.currentThread().getId)
-      var temp: Double = random.nextDouble(0, 1.0) //0~1.0之间
+      //var temp: Double = random.nextDouble(0, 1.0) //0~1.0之间
+
+      //var temp: Double = rand.nextDouble()
+      var temp: Double = randval(0,1)
 
       import scala.util.control.Breaks._
       breakable {
@@ -133,8 +146,8 @@ class Ant(init_Pher: Array[Array[Double]], val stagenum: Int, val Jmax: Int,
     val B_total:Array[Int] = new Array(B(stagenum).length)
     val G_total:Array[Int] = new Array(S(stagenum))
     var C_total = 0
-    var M_total:Array[Int] =new Array(M(stagenum).length)
-    val cst_dsak_j = dsaks.filter(x=>x.num <= pathL).map(dsak=>{
+    val M_total: Array[Int] = new Array(M(stagenum).length)
+    dsaks.filter(x=>x.num <= pathL).foreach(dsak=>{
       val d=dsak.d
       val s=dsak.s
       B_total(d-1) = B_total(d-1) + Xdsa(dsak.num-1)
@@ -208,7 +221,7 @@ class Ant(init_Pher: Array[Array[Double]], val stagenum: Int, val Jmax: Int,
   override def dealflow(): Unit ={
     //
     search()
-    //local_optimization()
+    local_optimization()
     //
     computeObjectFunction()
     //

@@ -10,7 +10,7 @@ case class SANG(s:Int, a:Int, nsa:Int, gsa:Double)
 
 class ReadData(dataPath: String = "hdfs") extends Serializable {
 
-  val path = "hdfs://192.168.120.133:8020/WTA/data/input/"
+  val path = "hdfs://192.168.30.50:9000/WTA/data/input/"
   val avs_file = Map(12 -> "svg.csv", 180 -> "1.csv")
   val dsak_file = Map(12 -> "dsak.csv", 180 -> "2.csv")
   val sang_file = Map(12 -> "sang.csv", 180 -> "3.csv")

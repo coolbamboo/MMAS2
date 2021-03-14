@@ -1,7 +1,13 @@
 package mmas2
 
 import mmas2.Para._
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.{FileSystem, Path}
+import org.apache.hadoop.io.IOUtils
 
+import java.io.{FileOutputStream, InputStream, OutputStream}
+import java.net.URI
+import java.util.concurrent.ThreadLocalRandom
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -49,13 +55,13 @@ object Util {
     }
   }
 
-  def saveToLocal(outputs : Vector[Output]): Unit ={
+  def saveToLocal(outputs : Vector[Output], outputfile : String = "./results.csv"): Unit ={
     import java.io.{BufferedWriter, FileOutputStream, IOException, OutputStreamWriter}
     var out : BufferedWriter = null
     try {
       out = new BufferedWriter(
         new OutputStreamWriter(
-          new FileOutputStream("./results.csv", true)))
+          new FileOutputStream(outputfile, true)))
       outputs.foreach(output => {
         out.write(output.toString() + "\r\n")
       })
@@ -83,5 +89,11 @@ object Util {
         DSAK_Jup(num, d, s, a, kdsa, jup)
     }
     (Vdsak_j, avss)
+  }
+
+  def randval(a: Double, b:Double) :Double = {
+    val r = ThreadLocalRandom.current().nextDouble(1.0)
+    val value = a + (b - a) * r
+    value
   }
 }
