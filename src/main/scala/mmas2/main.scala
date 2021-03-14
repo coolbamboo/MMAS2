@@ -74,7 +74,7 @@ object main {
             }
           //init an ant, add in bestants
           val bestants = ArrayBuffer[T_Ant](
-            new Ant(g_Pher, stagenum, J_max, dsak_j, avs, sang)
+            new Ant(g_Pher, stagenum, J_max, dsak_j, avs, sang, "basic")
           )
           Basic_run(iter_num, ant_num, bestants, record)
           //end
@@ -115,7 +115,7 @@ object main {
           //这里的累加器其实没用。累加器应该用在RDD中。这里的累加器其实就是个driver端的变量
           val globalBestAnts = new AntAccumulator(best_result_num)
           sc.register(globalBestAnts, "globalBestAnts")
-          val modelAnt = new Ant(g_Pher, stagenum, J_max, dsak_j, avs, sang)
+          val modelAnt = new Ant(g_Pher, stagenum, J_max, dsak_j, avs, sang, "distri")
           Distri_run(iter_num, ant_num, modelAnt, globalBestAnts, sc, record)
           //end
           val stoptime = new Date().getTime

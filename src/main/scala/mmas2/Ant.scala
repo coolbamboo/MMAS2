@@ -17,7 +17,7 @@ import scala.util.Random
   * stagenum:decision param's num(12\180)
   */
 class Ant(init_Pher: Array[Array[Double]], val stagenum: Int, val Jmax: Int,
-          vdsak_j: Array[DSAK_Jup], rawAVS: Array[AVS], rawSANG: Array[SANG]
+          vdsak_j: Array[DSAK_Jup], rawAVS: Array[AVS], rawSANG: Array[SANG], algoSele:String
          ) extends Serializable with T_Ant {
 
   val avss: Array[AVS] = rawAVS
@@ -47,8 +47,8 @@ class Ant(init_Pher: Array[Array[Double]], val stagenum: Int, val Jmax: Int,
   //Manpower
   override var m_s:Array[Double] = new Array(D(stagenum))
 
-  def setRandom(seed : Long) : Unit = {
-    this.rand = new scala.util.Random(seed)
+  def setRandom(rand : Random) : Unit = {
+    this.rand = rand
   }
 
   //search once
@@ -123,7 +123,13 @@ class Ant(init_Pher: Array[Array[Double]], val stagenum: Int, val Jmax: Int,
       //var temp: Double = random.nextDouble(0, 1.0) //0~1.0之间
 
       //var temp: Double = rand.nextDouble()
-      var temp: Double = randval(0,1)
+      var temp: Double = 0.0
+      algoSele match {
+        case "basic" => temp = randval(0,1)
+        case _ =>
+          temp = rand.nextDouble()
+          println(temp)
+      }
 
       import scala.util.control.Breaks._
       breakable {

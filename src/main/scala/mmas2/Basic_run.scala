@@ -1,6 +1,6 @@
 package mmas2
 
-import mmas2.Para.{best_result_num, l_g_ratio, pher0, pher_reset, rou}
+import mmas2.Para.{best_result_num, l_g_ratio, pher0, rou}
 
 import java.util.Date
 import scala.collection.mutable.ArrayBuffer
@@ -24,7 +24,7 @@ class Basic_run(val ANT_NUM: Int, val bestAnts: ArrayBuffer[T_Ant])
     for (_ <- 1 to ANT_NUM) {
       val myant = new Ant(modelAnt.pher, modelAnt.stagenum,
         modelAnt.Jmax, modelAnt.dsaks, modelAnt.avss,
-        modelAnt.sangs)
+        modelAnt.sangs, "basic")
       myant.dealflow()
       local_antGroup.append(myant)
     }

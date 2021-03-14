@@ -1,5 +1,7 @@
 package mmas2
 
+import scala.util.Random
+
 /**
   * interface for ant
   */
@@ -21,7 +23,7 @@ trait T_Ant {
   //Manpower
   var m_s:Array[Double]
 
-  def setRandom(seed : Long)
+  def setRandom(rand : Random)
 
   def dealflow()
 }

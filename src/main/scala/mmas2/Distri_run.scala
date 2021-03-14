@@ -1,10 +1,11 @@
 package mmas2
 
-import mmas2.Para.{l_g_ratio, pher0, pher_reset, rou}
+import mmas2.Para.{l_g_ratio, pher0, rou}
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 
 import java.util.Date
+import scala.util.Random
 
 class Distri_run(val iter: Int, val ANT_NUM: Int, val modelAntT: T_Ant, val globalBestAnts: AntAccumulator
                 ) extends Serializable with Run {
@@ -23,13 +24,15 @@ class Distri_run(val iter: Int, val ANT_NUM: Int, val modelAntT: T_Ant, val glob
         //i和迭代次数作为随机数生成器的种子
         val myant: T_Ant = new Ant(modelAnt.pher, modelAnt.stagenum,
           modelAnt.Jmax, modelAnt.dsaks, modelAnt.avss,
-          modelAnt.sangs)
+          modelAnt.sangs, "distri")
         //(i % task_num , myant)
+        val seed = iter.toString + (i + ANT_NUM).toString + new Date().getTime.toString
+        val rand = new Random(seed.toLong)
+        myant.setRandom(rand)
         myant
-      }.mapPartitionsWithIndex((index, ants) => {
-      //val seed = iter.toString + index.toString
+      }.mapPartitions(ants => {
       ants.map(ant => {
-        //ant.setRandom(seed.toLong)
+        //ant.setRandom(rand)
         ant.dealflow()
         globalBestAnts.add(ant)
         ant
@@ -119,6 +122,7 @@ class Distri_run(val iter: Int, val ANT_NUM: Int, val modelAntT: T_Ant, val glob
 object Distri_run {
   def apply(iter: Int, ant_num: Int, modelAnt: T_Ant, globalBestAnts: AntAccumulator,
             sc: SparkContext, record: Record) {
+    val rand:Random = new Random(new Date().getTime)
     for (i <- 1 to iter) {
       //迭代次数传递作为随机数种子
       val run = new Distri_run(i + iter, ant_num, modelAnt, globalBestAnts)
