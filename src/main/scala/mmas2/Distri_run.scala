@@ -26,8 +26,8 @@ class Distri_run(val iter: Int, val ANT_NUM: Int, val modelAntT: T_Ant, val glob
           modelAnt.Jmax, modelAnt.dsaks, modelAnt.avss,
           modelAnt.sangs, "distri")
         //(i % task_num , myant)
-        val seed = iter.toString + (i + ANT_NUM).toString + new Date().getTime.toString
-        val rand = new Random(seed.toLong)
+        val seed = iter.toString + (i + ANT_NUM).toString
+        val rand = new Random(seed.toLong + new Date().getTime)
         myant.setRandom(rand)
         myant
       }.mapPartitions(ants => {
