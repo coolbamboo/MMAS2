@@ -57,6 +57,7 @@ object main {
 
     algoSele.trim match {
       case "basic" =>
+        val begintime = new Date().getTime
         val outputsRDD: RDD[Vector[Output]] = sc.parallelize(1 to runmax_num, task_num).map(i => {
           println(s"第${i}次运行：")
           record.now_run = i
@@ -85,7 +86,10 @@ object main {
           outputs
         })
         //收集到driver
-        outputsRDD.collect().foreach(outputs => {
+        val outputs = outputsRDD.collect()
+        val endtime = new Date().getTime
+        println(s"run time:${endtime-begintime}毫秒")
+        outputs.foreach(outputs => {
           runStyle.trim match {
             case "local" =>
               Util.saveToLocal(outputs)
