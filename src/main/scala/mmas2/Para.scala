@@ -17,6 +17,8 @@ object Para {
   val t = Map(12 -> Array(34, 51), 180 -> Array(32, 48, 72)) //(34,51) || (32,48,72)
   val best_result_num = 1 //best results num
   val local_result_num = 1 //local result num for one iteration
+  //delay for ant
+  val delay_milisec = 1
 
   //pher
   val pher0 = 1

@@ -1,6 +1,6 @@
 package mmas2
 
-import mmas2.Para.{l_g_ratio, pher0, rou}
+import mmas2.Para.{delay_milisec, l_g_ratio, pher0, rou}
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 
@@ -21,6 +21,8 @@ class Distri_run(val iter: Int, val ANT_NUM: Int, val modelAntT: T_Ant, val glob
     //val antsLocalRDD: RDD[(Double, T_Ant)] = uniformRDD(sc,ANT_NUM,task_num)
     val antsLocalRDD: RDD[T_Ant] = sc.parallelize(1 to ANT_NUM, task_num)
       .map { i =>
+        //delay for sec
+        //Thread.sleep(delay_milisec)//效果不明显
         //i和迭代次数作为随机数生成器的种子
         val myant: T_Ant = new Ant(modelAnt.pher, modelAnt.stagenum,
           modelAnt.Jmax, modelAnt.dsaks, modelAnt.avss,
@@ -32,7 +34,6 @@ class Distri_run(val iter: Int, val ANT_NUM: Int, val modelAntT: T_Ant, val glob
         myant
       }.mapPartitions(ants => {
       ants.map(ant => {
-        //ant.setRandom(rand)
         ant.dealflow()
         globalBestAnts.add(ant)
         ant

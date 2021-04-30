@@ -128,7 +128,9 @@ class Ant(init_Pher: Array[Array[Double]], val stagenum: Int, val Jmax: Int,
         case "basic" => temp = randval(0,1)
         case _ =>
           temp = rand.nextDouble()
-          println(temp)
+          //Thread.sleep(delay_milisec)
+          //temp = randval(0,1)//配合sleep，效果不显
+          //println(temp)
       }
 
       import scala.util.control.Breaks._
